@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Bugsween</title>
+  <meta name="description" content="Bugsween. The ugliest bug ball of the year." />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; overflow: hidden; }
+    body { background: #07040a; color: #f5f0e6; font-family: system-ui, -apple-system, sans-serif; }
+    #scene { position: fixed; inset: 0; width: 100%; height: 100%; display: block; }
+    #play {
+      position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+      width: 7rem; height: 7rem; border-radius: 50%;
+      border: 2px solid rgba(255, 255, 255, 0.7);
+      background: rgba(0, 0, 0, 0.45); backdrop-filter: blur(4px);
+      cursor: pointer; display: grid; place-items: center;
+      transition: opacity 0.6s, transform 0.2s;
+    }
+    #play:hover { transform: translate(-50%, -50%) scale(1.08); }
+    #play svg { width: 2.6rem; height: 2.6rem; margin-left: 0.4rem; fill: #fff; }
+    #play.hidden { opacity: 0; pointer-events: none; }
+    #mute {
+      position: fixed; bottom: 1.5rem; right: 1.5rem;
+      width: 3rem; height: 3rem; border-radius: 50%;
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      background: rgba(0, 0, 0, 0.4); color: #f5f0e6;
+      font-size: 1.3rem; cursor: pointer; display: none;
+    }
+  </style>
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/"
+      }
+    }
+  </script>
+</head>
+<body>
+  <canvas id="scene"></canvas>
+  <button id="play" aria-label="Play">
+    <svg viewBox="0 0 24 24"><path d="M6 4l15 8-15 8z" /></svg>
+  </button>
+  <button id="mute" aria-label="Mute music">🔊</button>
+  <audio id="music" src="/bugsball.mp3" loop preload="auto"></audio>
+
+  <script type="module">
+    import * as THREE from 'three';
+    import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+
+    // ---------- Renderer / camera ----------
+    const canvas = document.getElementById('scene');
+    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x07040a);
+    const camera = new THREE.PerspectiveCamera(40, 1, 0.01, 100);
+    camera.position.set(0, 0, 3.2);
+
+    // ---------- Backdrop that catches the coloured shadows ----------
+    const wall = new THREE.Mesh(
+      new THREE.PlaneGeometry(30, 30),
+      new THREE.MeshStandardMaterial({ color: 0x9a9a9a, roughness: 0.95 })
+    );
+    wall.position.z = -1.4;
+    wall.receiveShadow = true;
+    scene.add(wall);
+
+    scene.add(new THREE.AmbientLight(0xffffff, 0.04));
+
+    // A single spotlight, off to one side so its shadow lands beside the shape.
+    // Its colour cycles through the rainbow while the music plays.
+    const spot = new THREE.SpotLight(0xff2d95, 14, 20, Math.PI / 5, 0.8, 1.5);
+    spot.position.set(-1.8, 1.2, 3);
+    spot.target.position.set(0, 0, -1.4);
+    spot.castShadow = true;
+    spot.shadow.mapSize.set(2048, 2048);
+    spot.shadow.bias = -0.0005;
+    spot.shadow.radius = 3;
+    scene.add(spot, spot.target);
+
+    // ---------- Model ----------
+    const spinner = new THREE.Group();
+    scene.add(spinner);
+
+    new GLTFLoader().load('/ghost.glb', (gltf) => {
+      const model = gltf.scene;
+      model.traverse((o) => { if (o.isMesh) o.castShadow = true; });
+      // Centre the scan and scale it to roughly 1.4 units across
+      const box = new THREE.Box3().setFromObject(model);
+      const size = box.getSize(new THREE.Vector3());
+      model.position.sub(box.getCenter(new THREE.Vector3()));
+      spinner.scale.setScalar(1.4 / Math.max(size.x, size.y, size.z));
+      spinner.add(model);
+    }, undefined, (err) => console.error(err));
+
+    function resize() {
+      const w = window.innerWidth, h = window.innerHeight;
+      renderer.setSize(w, h, false);
+      camera.aspect = w / h;
+      // Pull the camera back on narrow screens so the cube fits
+      camera.position.z = w < h ? 4.5 : 3.2;
+      camera.updateProjectionMatrix();
+    }
+    window.addEventListener('resize', resize);
+    resize();
+
+    // ---------- Animation (only moves once Play is pressed) ----------
+    let playing = false, t = 0;
+    const clock = new THREE.Clock();
+    renderer.setAnimationLoop(() => {
+      const dt = clock.getDelta();
+      if (playing) t += dt;
+      spinner.rotation.y = t * 0.8;
+      spinner.rotation.x = Math.sin(t * 0.5) * 0.15;
+      spinner.position.y = Math.sin(t * 1.2) * 0.05;
+      // Hue starts on pink and takes ~8s to go all the way round
+      spot.color.setHSL((0.92 + t / 8) % 1, 1, 0.55);
+      renderer.render(scene, camera);
+    });
+
+    // ---------- Play / mute ----------
+    const music = document.getElementById('music');
+    const playBtn = document.getElementById('play');
+    const muteBtn = document.getElementById('mute');
+
+    playBtn.addEventListener('click', () => {
+      music.play();
+      playing = true;
+      playBtn.classList.add('hidden');
+      muteBtn.style.display = 'block';
+    });
+
+    muteBtn.addEventListener('click', () => {
+      music.muted = !music.muted;
+      muteBtn.textContent = music.muted ? '🔇' : '🔊';
+    });
+  </script>
+</body>
+</html>
