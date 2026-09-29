@@ -86,7 +86,7 @@
   </button>
   <div id="flash"></div>
   <div id="caption"><span></span></div>
-  <audio id="music" src="/bugsball.mp3#t=100" loop preload="auto"></audio>
+  <audio id="music" src="/bugsball.mp3#t=48" loop preload="auto"></audio>
 
   <script type="module">
     import * as THREE from 'three';
@@ -116,7 +116,7 @@
 
     scene.add(new THREE.AmbientLight(0xffffff, 0.04));
 
-    // A single spotlight that circles the shape, so its shadow swings around the wall.
+    // A single spotlight that sweeps side to side, so its shadow swings across the wall.
     // Its colour cycles through the rainbow while the music plays.
     const spot = new THREE.SpotLight(0xff2d95, 14, 20, Math.PI / 5, 0.8, 1.5);
     spot.position.set(-1.8, 1.2, 3);
@@ -164,9 +164,8 @@
       spinner.position.y = Math.sin(t * 1.2) * 0.05;
       // Hue starts on pink and takes ~8s to go all the way round
       spot.color.setHSL((0.92 + t / 8) % 1, 1, 0.55);
-      // Light orbits once every ~10s; the shadow moves to the opposite side
-      spot.position.x = Math.cos(2.5 - t * 0.6) * 1.9;
-      spot.position.y = Math.sin(2.5 - t * 0.6) * 1.3;
+      // Light sweeps left to right and back every ~2.5s; the shadow swings the opposite way
+      spot.position.x = -Math.cos(t * 2.5) * 2;
       renderer.render(scene, camera);
     });
 
