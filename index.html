@@ -3,15 +3,15 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Bugsween</title>
-  <meta name="description" content="Bugsween. The ugliest bug ball of the year." />
+  <title>Bugs Ween</title>
+  <meta name="description" content="Bugs Ween. The ugliest bug ball of the year." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Bangers&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@600;700&display=swap" rel="stylesheet" />
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     html, body { height: 100%; overflow: hidden; }
-    body { background: #07040a; color: #f5f0e6; font-family: system-ui, -apple-system, sans-serif; }
+    body { background: #07040a; color: #f5f0e6; font-family: 'Fredoka', system-ui, sans-serif; }
     #scene { position: fixed; inset: 0; width: 100%; height: 100%; display: block; }
     #play {
       position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
@@ -24,123 +24,401 @@
     #play:hover { transform: translate(-50%, -50%) scale(1.08); }
     #play svg { width: 2.6rem; height: 2.6rem; margin-left: 0.4rem; fill: #fff; }
     #play.hidden { opacity: 0; pointer-events: none; }
-    /* ---------- Pop-art captions ---------- */
-    #flash { position: fixed; inset: 0; background: #fff; opacity: 0; pointer-events: none; }
-    #flash.on { animation: flash 0.35s ease-out; }
-    #caption {
-      position: fixed; top: 50%; left: 50%;
-      width: min(92vw, 760px); aspect-ratio: 1.5;
-      transform: translate(-50%, -50%);
-      display: grid; place-items: center;
-      pointer-events: none; opacity: 0;
+    #play.loading { cursor: wait; animation: breathe 1.2s ease-in-out infinite; }
+    #play.loading svg { opacity: 0.3; }
+    @keyframes breathe { 0%, 100% { opacity: 0.4; } 50% { opacity: 1; } }
+
+    /* ---------- Bug messengers ---------- */
+    /* Each bug runs one 4.6s cycle: crawl in (0-22%), hold with bubble (22-78%), leave (78-100%). */
+    .bug { position: fixed; width: 52vmin; pointer-events: none; visibility: hidden; }
+    .bug.go { visibility: visible; animation-duration: 4.6s; animation-fill-mode: forwards; animation-timing-function: ease-in-out; }
+    .bug svg { width: 100%; height: auto; display: block; overflow: visible; filter: drop-shadow(0 6px 6px rgba(0, 0, 0, 0.35)); }
+
+    .bubble {
+      position: absolute; width: max-content; max-width: min(70vw, 480px);
+      padding: 0.7em 1em; border-radius: 1.2em;
+      background: #fff8e7; border: 3px solid #3b2a20;
+      color: var(--ink); font-size: clamp(1.2rem, 4.4vmin, 2.3rem); font-weight: 700;
+      line-height: 1.15; text-align: center;
+      transform: scale(0); opacity: 0;
     }
-    #caption.on { animation: slam 2s cubic-bezier(.2, 1.4, .4, 1) forwards; }
-    #caption::before, #caption::after { content: ''; position: absolute; inset: 0; clip-path: var(--burst); }
-    #caption::before { background: #000; transform: scale(1.07); }
-    #caption::after {
-      background-color: var(--bg);
-      background-image: radial-gradient(circle, rgba(0, 0, 0, 0.22) 24%, transparent 26%);
-      background-size: 11px 11px;
+    .bubble::after {
+      content: ''; position: absolute; width: 1em; height: 1em;
+      background: #fff8e7; border: 3px solid #3b2a20; border-top: 0; border-left: 0;
+      transform: rotate(45deg);
     }
-    #caption span {
-      position: relative; z-index: 1;
-      padding: 0 20%; text-align: center; line-height: 0.95;
-      font-family: 'Bangers', 'Impact', sans-serif;
-      font-size: clamp(2.2rem, 8.5vw, 5.2rem); letter-spacing: 0.03em;
-      color: var(--fg);
-      -webkit-text-stroke: 3px #000; paint-order: stroke fill;
-      text-shadow: 5px 5px 0 #000;
-      transform: rotate(-5deg);
+    .bug.go .bubble { animation: pop 4.6s cubic-bezier(.34, 1.56, .64, 1) forwards; }
+    @keyframes pop {
+      0%, 20% { transform: scale(0); opacity: 0; }
+      27%, 72% { transform: scale(1); opacity: 1; }
+      77%, 100% { transform: scale(0); opacity: 0; }
     }
-    body.shake #scene { animation: shake 0.4s; }
-    @keyframes flash { 0% { opacity: 0.95; } 100% { opacity: 0; } }
-    @keyframes slam {
-      0%   { opacity: 0; transform: translate(-50%, -50%) scale(3) rotate(-25deg); }
-      10%  { opacity: 1; transform: translate(-50%, -50%) scale(0.85) rotate(6deg); }
-      16%  { transform: translate(-50%, -50%) scale(1.12) rotate(-4deg); }
-      22%  { transform: translate(-50%, -50%) scale(1) rotate(-2deg); }
-      88%  { opacity: 1; transform: translate(-50%, -50%) scale(1.04) rotate(-2deg); }
-      100% { opacity: 0; transform: translate(-50%, -50%) scale(0) rotate(20deg); }
+
+    /* Ladybird trundles in along the floor from the left, then scurries off right */
+    #ladybird { left: 4vw; bottom: 2vh; --ink: #c8102e; }
+    #ladybird .bubble { bottom: 90%; left: 55%; }
+    #ladybird .bubble::after { bottom: -0.55em; left: 1.5em; }
+    #ladybird.go { animation-name: ladybird; }
+    @keyframes ladybird {
+      0% { transform: translateX(-75vmin); }
+      22%, 78% { transform: translateX(0); }
+      100% { transform: translateX(130vw); }
     }
-    @keyframes shake {
-      0%, 100% { transform: translate(0, 0); }
-      20% { transform: translate(-14px, 8px); }
-      40% { transform: translate(12px, -10px); }
-      60% { transform: translate(-8px, -6px); }
-      80% { transform: translate(6px, 8px); }
+
+    /* Caterpillar inches in from the right, then off to the left */
+    #caterpillar { right: 4vw; bottom: 2vh; width: 68vmin; --ink: #2e7d32; }
+    #caterpillar .bubble { bottom: 95%; right: 45%; }
+    #caterpillar .bubble::after { bottom: -0.55em; right: 1.5em; }
+    #caterpillar.go { animation-name: caterpillar; }
+    @keyframes caterpillar {
+      0% { transform: translateX(95vmin); }
+      22%, 78% { transform: translateX(0); }
+      100% { transform: translateX(-140vw); }
     }
+
+    /* Bee loops in from the top right, hovers, then zips away */
+    #bee { left: 6vw; top: 6vh; width: 44vmin; --ink: #b26a00; }
+    #bee .bubble { top: 70%; left: 85%; }
+    #bee .bubble::after { top: 1.2em; left: -0.55em; transform: rotate(135deg); }
+    #bee.go { animation-name: bee; }
+    @keyframes bee {
+      0% { transform: translate(110vw, 10vh) rotate(-10deg); }
+      10% { transform: translate(60vw, -4vh) rotate(-6deg); }
+      22% { transform: translate(0, 0) rotate(0); }
+      50% { transform: translate(0, 1.5vh) rotate(2deg); }
+      78% { transform: translate(0, 0) rotate(0); }
+      100% { transform: translate(-40vw, -40vh) rotate(-15deg); }
+    }
+
+    /* Spider lowers itself on a thread from above, bounces, then winches back up */
+    #spider { left: 50%; top: 8vh; width: 44vmin; margin-left: -22vmin; --ink: #5b2a9e; }
+    #spider::before { content: ''; position: absolute; left: 50%; bottom: 82%; width: 2px; height: 300vh; background: rgba(255, 255, 255, 0.55); }
+    #spider .bubble { top: 92%; left: 50%; translate: -50% 0; }
+    #spider .bubble::after { top: -0.55em; left: calc(50% - 0.5em); transform: rotate(-135deg); }
+    #spider.go { animation-name: spider; }
+    @keyframes spider {
+      0% { transform: translateY(-140vh); }
+      18% { transform: translateY(4vh); }
+      24% { transform: translateY(-1vh); }
+      30%, 78% { transform: translateY(0); }
+      100% { transform: translateY(-140vh); }
+    }
+
+    /* Butterfly flutters in from the left, settles top right, then floats off upward */
+    #butterfly { right: 5vw; top: 7vh; width: 50vmin; --ink: #d4380d; }
+    #butterfly .bubble { top: 55%; right: 78%; }
+    #butterfly .bubble::after { top: 1.2em; right: -0.55em; transform: rotate(-45deg); }
+    #butterfly.go { animation-name: butterfly; }
+    @keyframes butterfly {
+      0% { transform: translate(-115vw, 12vh) rotate(8deg); }
+      11% { transform: translate(-60vw, -3vh) rotate(-4deg); }
+      22% { transform: translate(0, 0) rotate(0); }
+      50% { transform: translate(0, 2vh) rotate(-2deg); }
+      78% { transform: translate(0, 0) rotate(0); }
+      100% { transform: translate(25vw, -60vh) rotate(12deg); }
+    }
+
+    /* Ant marches in along the floor from the left with its phone, then hurries off right */
+    #ant { left: 3vw; bottom: 1vh; width: 56vmin; --ink: #075e54; }
+    #ant .bubble { bottom: 88%; left: 50%; }
+    #ant .bubble::after { bottom: -0.55em; left: 1.5em; }
+    #ant.go { animation-name: ant; }
+    @keyframes ant {
+      0% { transform: translateX(-80vmin); }
+      22%, 78% { transform: translateX(0); }
+      100% { transform: translateX(130vw); }
+    }
+
+    /* Firefly drifts up from the bottom right, glows, then floats away into the night */
+    #firefly { right: 6vw; top: 28vh; width: 42vmin; --ink: #c2185b; }
+    #firefly .bubble { top: 25%; right: 88%; }
+    #firefly .bubble::after { top: 1.2em; right: -0.55em; transform: rotate(-45deg); }
+    #firefly.go { animation-name: firefly; }
+    @keyframes firefly {
+      0% { transform: translate(50vw, 75vh) rotate(-6deg); }
+      12% { transform: translate(15vw, 20vh) rotate(4deg); }
+      22% { transform: translate(0, 0) rotate(0); }
+      50% { transform: translate(-1vw, -2vh) rotate(-3deg); }
+      78% { transform: translate(0, 0) rotate(0); }
+      100% { transform: translate(20vw, -80vh) rotate(6deg); }
+    }
+    .bug .glow { animation: glow 0.9s ease-in-out infinite alternate; transform-box: fill-box; transform-origin: center; }
+    @keyframes glow { from { opacity: 0.55; transform: scale(0.92); } to { opacity: 1; transform: scale(1.12); } }
+    .bug .wingL, .bug .wingR { transform-box: fill-box; animation: flutter 0.5s ease-in-out infinite alternate; }
+    .bug .wingL { transform-origin: right center; }
+    .bug .wingR { transform-origin: left center; }
+    @keyframes flutter { from { transform: scaleX(1); } to { transform: scaleX(0.55); } }
+
+    /* Little bits of life: legs scuttle, wings flap, segments ripple, everything waddles */
+    .bug .legs .l { transform-box: fill-box; transform-origin: top; animation: scuttle 0.22s ease-in-out infinite alternate; }
+    .bug .legs .l:nth-child(even) { animation-direction: alternate-reverse; }
+    @keyframes scuttle { from { transform: rotate(-16deg); } to { transform: rotate(16deg); } }
+    .bug .waddle { transform-box: fill-box; transform-origin: bottom center; animation: waddle 0.36s ease-in-out infinite alternate; }
+    @keyframes waddle { from { transform: rotate(-3deg) translateY(0); } to { transform: rotate(3deg) translateY(-3px); } }
+    .bug .seg { animation: ripple 0.6s ease-in-out infinite alternate; }
+    .bug .seg:nth-child(2) { animation-delay: -0.15s; }
+    .bug .seg:nth-child(3) { animation-delay: -0.3s; }
+    .bug .seg:nth-child(4) { animation-delay: -0.45s; }
+    @keyframes ripple { from { transform: translateY(0); } to { transform: translateY(-14px); } }
+    .bug .wing { transform-box: fill-box; transform-origin: bottom center; animation: flap 0.09s ease-in-out infinite alternate; }
+    .bug .wing.r { animation-delay: -0.045s; }
+    @keyframes flap { from { transform: scaleY(1) rotate(-8deg); } to { transform: scaleY(0.55) rotate(8deg); } }
+    .bug .blink { animation: blink 3.5s infinite; transform-box: fill-box; transform-origin: center; }
+    @keyframes blink { 0%, 92%, 100% { transform: scaleY(1); } 95% { transform: scaleY(0.1); } }
   </style>
   <script type="importmap">
     {
       "imports": {
-        "three": "https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js",
-        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/"
+        "three": "https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/",
+        "@sparkjsdev/spark": "https://sparkjs.dev/releases/spark/2.3.0/spark.module.js"
       }
     }
   </script>
 </head>
 <body>
   <canvas id="scene"></canvas>
-  <button id="play" aria-label="Play">
+  <button id="play" class="loading" aria-label="Play" disabled>
     <svg viewBox="0 0 24 24"><path d="M6 4l15 8-15 8z" /></svg>
   </button>
-  <div id="flash"></div>
-  <div id="caption"><span></span></div>
-  <audio id="music" src="/bugsball.mp3#t=85" loop preload="auto"></audio>
+  <audio id="music" src="/bugsball.mp3#t=86" loop preload="auto"></audio>
+
+  <!-- Ladybird -->
+  <div class="bug" id="ladybird">
+    <div class="bubble">You are invited to a Bugs Ween!</div>
+    <svg viewBox="0 0 220 170">
+      <g class="legs" stroke="#2b1d1a" stroke-width="7" stroke-linecap="round" fill="none">
+        <path class="l" d="M60 128 L44 156" /><path class="l" d="M90 138 L82 164" /><path class="l" d="M120 138 L124 164" />
+        <path class="l" d="M150 130 L166 156" /><path class="l" d="M70 120 L40 140" /><path class="l" d="M140 122 L172 140" />
+      </g>
+      <g class="waddle">
+        <path d="M150 55 Q170 20 190 22" stroke="#2b1d1a" stroke-width="5" fill="none" stroke-linecap="round" /><circle cx="191" cy="21" r="6" fill="#2b1d1a" />
+        <path d="M165 60 Q195 40 208 50" stroke="#2b1d1a" stroke-width="5" fill="none" stroke-linecap="round" /><circle cx="209" cy="50" r="6" fill="#2b1d1a" />
+        <ellipse cx="100" cy="95" rx="78" ry="58" fill="#e53935" />
+        <path d="M100 37 V153" stroke="#2b1d1a" stroke-width="5" />
+        <circle cx="62" cy="80" r="11" fill="#2b1d1a" /><circle cx="80" cy="120" r="9" fill="#2b1d1a" /><circle cx="130" cy="72" r="9" fill="#2b1d1a" /><circle cx="135" cy="118" r="11" fill="#2b1d1a" />
+        <circle cx="168" cy="82" r="34" fill="#3a2826" />
+        <circle cx="158" cy="76" r="13" fill="#fff" /><circle cx="184" cy="80" r="13" fill="#fff" />
+        <g class="blink"><circle cx="161" cy="77" r="6.5" fill="#1a1010" /><circle cx="187" cy="81" r="6.5" fill="#1a1010" /><circle cx="163" cy="74" r="2.4" fill="#fff" /><circle cx="189" cy="78" r="2.4" fill="#fff" /></g>
+        <circle cx="150" cy="96" r="6" fill="#ff8fa3" opacity="0.8" /><circle cx="194" cy="100" r="6" fill="#ff8fa3" opacity="0.8" />
+        <path d="M160 100 Q172 112 184 100" stroke="#fff" stroke-width="4" fill="none" stroke-linecap="round" />
+      </g>
+    </svg>
+  </div>
+
+  <!-- Caterpillar -->
+  <div class="bug" id="caterpillar">
+    <div class="bubble">28th of November</div>
+    <svg viewBox="0 0 290 150">
+      <g class="legs" stroke="#2e5d1f" stroke-width="7" stroke-linecap="round" fill="none">
+        <path class="l" d="M245 118 L240 140" /><path class="l" d="M205 122 L200 144" /><path class="l" d="M165 122 L160 144" /><path class="l" d="M125 122 L120 144" /><path class="l" d="M85 122 L80 144" />
+      </g>
+      <g class="seg"><circle cx="248" cy="94" r="30" fill="#7ed957" /><circle cx="240" cy="86" r="8" fill="#a5f27a" opacity="0.6" /></g>
+      <g class="seg"><circle cx="208" cy="90" r="33" fill="#5cb944" /><circle cx="199" cy="80" r="9" fill="#8fe06a" opacity="0.6" /></g>
+      <g class="seg"><circle cx="166" cy="88" r="35" fill="#7ed957" /><circle cx="156" cy="77" r="9" fill="#a5f27a" opacity="0.6" /></g>
+      <g class="seg"><circle cx="122" cy="88" r="36" fill="#5cb944" /><circle cx="112" cy="76" r="10" fill="#8fe06a" opacity="0.6" /></g>
+      <g class="waddle">
+        <path d="M62 44 Q52 14 30 12" stroke="#2e5d1f" stroke-width="5" fill="none" stroke-linecap="round" /><circle cx="28" cy="12" r="6" fill="#ffcf33" />
+        <path d="M82 40 Q86 10 104 6" stroke="#2e5d1f" stroke-width="5" fill="none" stroke-linecap="round" /><circle cx="106" cy="6" r="6" fill="#ffcf33" />
+        <circle cx="72" cy="86" r="40" fill="#8fe06a" />
+        <circle cx="58" cy="76" r="14" fill="#fff" /><circle cx="86" cy="76" r="14" fill="#fff" />
+        <g class="blink"><circle cx="55" cy="78" r="7" fill="#1a1010" /><circle cx="83" cy="78" r="7" fill="#1a1010" /><circle cx="53" cy="75" r="2.5" fill="#fff" /><circle cx="81" cy="75" r="2.5" fill="#fff" /></g>
+        <circle cx="44" cy="98" r="7" fill="#ff8fa3" opacity="0.8" /><circle cx="100" cy="98" r="7" fill="#ff8fa3" opacity="0.8" />
+        <path d="M56 102 Q72 118 88 102" stroke="#2e5d1f" stroke-width="4" fill="none" stroke-linecap="round" />
+      </g>
+    </svg>
+  </div>
+
+  <!-- Bee -->
+  <div class="bug" id="bee">
+    <div class="bubble">19 Roden Street</div>
+    <svg viewBox="0 0 220 180">
+      <defs><clipPath id="beeBody"><ellipse cx="95" cy="105" rx="60" ry="44" /></clipPath></defs>
+      <g class="waddle">
+        <ellipse class="wing" cx="75" cy="52" rx="20" ry="36" fill="#fff" opacity="0.75" stroke="#3a2826" stroke-width="3" />
+        <ellipse class="wing r" cx="115" cy="52" rx="20" ry="36" fill="#fff" opacity="0.75" stroke="#3a2826" stroke-width="3" />
+        <path d="M36 105 L18 112 L36 118 Z" fill="#3a2826" />
+        <ellipse cx="95" cy="105" rx="60" ry="44" fill="#ffcf33" />
+        <g clip-path="url(#beeBody)"><rect x="52" y="55" width="18" height="100" fill="#3a2826" /><rect x="88" y="55" width="18" height="100" fill="#3a2826" /></g>
+        <g class="legs" stroke="#3a2826" stroke-width="6" stroke-linecap="round" fill="none">
+          <path class="l" d="M75 145 L70 164" /><path class="l" d="M100 148 L102 168" /><path class="l" d="M125 142 L134 160" />
+        </g>
+        <path d="M150 62 Q160 30 182 30" stroke="#3a2826" stroke-width="5" fill="none" stroke-linecap="round" /><circle cx="184" cy="30" r="6" fill="#3a2826" />
+        <path d="M162 70 Q186 52 200 62" stroke="#3a2826" stroke-width="5" fill="none" stroke-linecap="round" /><circle cx="201" cy="62" r="6" fill="#3a2826" />
+        <circle cx="158" cy="100" r="36" fill="#3a2826" />
+        <circle cx="148" cy="92" r="13" fill="#fff" /><circle cx="176" cy="96" r="13" fill="#fff" />
+        <g class="blink"><circle cx="151" cy="93" r="6.5" fill="#1a1010" /><circle cx="179" cy="97" r="6.5" fill="#1a1010" /><circle cx="153" cy="90" r="2.4" fill="#fff" /><circle cx="181" cy="94" r="2.4" fill="#fff" /></g>
+        <circle cx="140" cy="114" r="6" fill="#ff8fa3" opacity="0.8" /><circle cx="186" cy="118" r="6" fill="#ff8fa3" opacity="0.8" />
+        <path d="M150 116 Q163 128 176 116" stroke="#fff" stroke-width="4" fill="none" stroke-linecap="round" />
+      </g>
+    </svg>
+  </div>
+
+  <!-- Spider -->
+  <div class="bug" id="spider">
+    <div class="bubble">The theme is bugs!</div>
+    <svg viewBox="0 0 220 200">
+      <g class="legs" stroke="#4a2a85" stroke-width="8" stroke-linecap="round" fill="none">
+        <path class="l" d="M72 110 Q30 90 22 140" /><path class="l" d="M148 110 Q190 90 198 140" />
+        <path class="l" d="M70 125 Q22 125 18 170" /><path class="l" d="M150 125 Q198 125 202 170" />
+        <path class="l" d="M74 140 Q38 160 40 190" /><path class="l" d="M146 140 Q182 160 180 190" />
+        <path class="l" d="M80 150 Q62 180 70 198" /><path class="l" d="M140 150 Q158 180 150 198" />
+      </g>
+      <g class="waddle">
+        <circle cx="110" cy="130" r="50" fill="#6a3fb5" />
+        <circle cx="95" cy="112" r="14" fill="#8b5fd6" opacity="0.5" />
+        <circle cx="110" cy="72" r="34" fill="#7b4fd0" />
+        <circle cx="96" cy="70" r="14" fill="#fff" /><circle cx="124" cy="70" r="14" fill="#fff" />
+        <g class="blink"><circle cx="97" cy="72" r="7" fill="#1a1010" /><circle cx="125" cy="72" r="7" fill="#1a1010" /><circle cx="99" cy="69" r="2.5" fill="#fff" /><circle cx="127" cy="69" r="2.5" fill="#fff" /></g>
+        <circle cx="86" cy="52" r="5" fill="#fff" /><circle cx="134" cy="52" r="5" fill="#fff" /><circle cx="86" cy="52" r="2.5" fill="#1a1010" /><circle cx="134" cy="52" r="2.5" fill="#1a1010" />
+        <circle cx="82" cy="88" r="6" fill="#ff8fa3" opacity="0.8" /><circle cx="138" cy="88" r="6" fill="#ff8fa3" opacity="0.8" />
+        <path d="M96 92 Q110 104 124 92" stroke="#fff" stroke-width="4" fill="none" stroke-linecap="round" />
+        <path d="M100 96 L103 104 L106 96 Z" fill="#fff" /><path d="M114 96 L117 104 L120 96 Z" fill="#fff" />
+      </g>
+    </svg>
+  </div>
+
+  <!-- Butterfly in a bow tie -->
+  <div class="bug" id="butterfly">
+    <div class="bubble">Please dress up!</div>
+    <svg viewBox="0 0 280 220">
+      <g class="wingL">
+        <ellipse cx="82" cy="80" rx="62" ry="50" fill="#ff8a3d" stroke="#5a2a1a" stroke-width="4" />
+        <ellipse cx="90" cy="150" rx="46" ry="36" fill="#ffb347" stroke="#5a2a1a" stroke-width="4" />
+        <circle cx="70" cy="76" r="16" fill="#ffe28a" /><circle cx="70" cy="76" r="7" fill="#5a2a1a" /><circle cx="84" cy="152" r="9" fill="#ffe28a" />
+      </g>
+      <g class="wingR">
+        <ellipse cx="198" cy="80" rx="62" ry="50" fill="#ff8a3d" stroke="#5a2a1a" stroke-width="4" />
+        <ellipse cx="190" cy="150" rx="46" ry="36" fill="#ffb347" stroke="#5a2a1a" stroke-width="4" />
+        <circle cx="210" cy="76" r="16" fill="#ffe28a" /><circle cx="210" cy="76" r="7" fill="#5a2a1a" /><circle cx="196" cy="152" r="9" fill="#ffe28a" />
+      </g>
+      <g class="waddle">
+        <path d="M126 36 Q110 10 92 8" stroke="#3a2826" stroke-width="5" fill="none" stroke-linecap="round" /><circle cx="90" cy="8" r="6" fill="#3a2826" />
+        <path d="M154 36 Q170 10 188 8" stroke="#3a2826" stroke-width="5" fill="none" stroke-linecap="round" /><circle cx="190" cy="8" r="6" fill="#3a2826" />
+        <ellipse cx="140" cy="140" rx="22" ry="62" fill="#3a2826" />
+        <circle cx="140" cy="62" r="32" fill="#3a2826" />
+        <circle cx="128" cy="58" r="12" fill="#fff" /><circle cx="152" cy="58" r="12" fill="#fff" />
+        <g class="blink"><circle cx="129" cy="60" r="6" fill="#1a1010" /><circle cx="153" cy="60" r="6" fill="#1a1010" /><circle cx="131" cy="57" r="2.2" fill="#fff" /><circle cx="155" cy="57" r="2.2" fill="#fff" /></g>
+        <circle cx="118" cy="74" r="5" fill="#ff8fa3" opacity="0.8" /><circle cx="162" cy="74" r="5" fill="#ff8fa3" opacity="0.8" />
+        <path d="M130 76 Q140 86 150 76" stroke="#fff" stroke-width="3.5" fill="none" stroke-linecap="round" />
+        <path d="M140 98 L116 86 L116 110 Z" fill="#e53935" /><path d="M140 98 L164 86 L164 110 Z" fill="#e53935" /><circle cx="140" cy="98" r="6" fill="#c8102e" />
+      </g>
+    </svg>
+  </div>
+
+  <!-- Ant with a phone -->
+  <div class="bug" id="ant">
+    <div class="bubble">RSVP by WhatsApp, let us know if you need to stay or anything</div>
+    <svg viewBox="0 0 280 170">
+      <g class="legs" stroke="#4a2a16" stroke-width="7" stroke-linecap="round" fill="none">
+        <path class="l" d="M70 118 L48 158" /><path class="l" d="M92 124 L84 162" /><path class="l" d="M150 122 L142 162" />
+        <path class="l" d="M168 118 L186 158" /><path class="l" d="M60 108 L28 130" /><path class="l" d="M160 108 L196 132" />
+      </g>
+      <g class="waddle">
+        <path d="M212 68 Q222 30 246 26" stroke="#4a2a16" stroke-width="5" fill="none" stroke-linecap="round" /><circle cx="248" cy="26" r="6" fill="#4a2a16" />
+        <path d="M226 78 Q256 60 266 72" stroke="#4a2a16" stroke-width="5" fill="none" stroke-linecap="round" /><circle cx="268" cy="72" r="6" fill="#4a2a16" />
+        <ellipse cx="72" cy="100" rx="52" ry="40" fill="#8b5a3c" />
+        <ellipse cx="82" cy="88" rx="16" ry="10" fill="#a8734f" opacity="0.6" />
+        <ellipse cx="140" cy="100" rx="30" ry="24" fill="#6b3e26" />
+        <circle cx="210" cy="92" r="38" fill="#8b5a3c" />
+        <circle cx="200" cy="84" r="14" fill="#fff" /><circle cx="228" cy="88" r="14" fill="#fff" />
+        <g class="blink"><circle cx="203" cy="86" r="7" fill="#1a1010" /><circle cx="231" cy="90" r="7" fill="#1a1010" /><circle cx="205" cy="83" r="2.5" fill="#fff" /><circle cx="233" cy="87" r="2.5" fill="#fff" /></g>
+        <circle cx="190" cy="106" r="6" fill="#ff8fa3" opacity="0.8" /><circle cx="238" cy="110" r="6" fill="#ff8fa3" opacity="0.8" />
+        <path d="M202 110 Q216 122 230 110" stroke="#fff" stroke-width="4" fill="none" stroke-linecap="round" />
+        <path d="M176 118 Q166 140 178 150" stroke="#4a2a16" stroke-width="7" fill="none" stroke-linecap="round" />
+        <rect x="160" y="128" width="30" height="46" rx="6" fill="#25d366" stroke="#0b3d2e" stroke-width="3" transform="rotate(-12 175 151)" />
+        <circle cx="175" cy="150" r="9" fill="#fff" transform="rotate(-12 175 151)" /><path d="M170 158 L166 164 L174 160 Z" fill="#fff" transform="rotate(-12 175 151)" />
+      </g>
+    </svg>
+  </div>
+
+  <!-- Firefly with a glowing heart on its chest -->
+  <div class="bug" id="firefly">
+    <div class="bubble">Love you all, excited to see you in the hive!</div>
+    <svg viewBox="0 0 220 230">
+      <defs><radialGradient id="heartGlow"><stop offset="0" stop-color="#fff3a0" stop-opacity="0.95" /><stop offset="0.5" stop-color="#ff6fb0" stop-opacity="0.5" /><stop offset="1" stop-color="#ff6fb0" stop-opacity="0" /></radialGradient></defs>
+      <g class="glow"><circle cx="110" cy="122" r="46" fill="url(#heartGlow)" /></g>
+      <g class="waddle">
+        <ellipse class="wing" cx="84" cy="70" rx="22" ry="44" fill="#d6fff7" opacity="0.75" stroke="#1f4f4a" stroke-width="3" />
+        <ellipse class="wing r" cx="136" cy="70" rx="22" ry="44" fill="#d6fff7" opacity="0.75" stroke="#1f4f4a" stroke-width="3" />
+        <ellipse cx="110" cy="118" rx="34" ry="46" fill="#2f6f66" />
+        <path d="M110 205 C90 190 78 178 84 164 C89 152 104 152 110 164 C116 152 131 152 136 164 C142 178 130 190 110 205 Z" fill="#ff6fb0" stroke="#c2185b" stroke-width="3" transform="translate(0 -60)" />
+        <g class="legs" stroke="#1f4f4a" stroke-width="5" stroke-linecap="round" fill="none">
+          <path class="l" d="M86 150 L74 166" /><path class="l" d="M134 150 L146 166" />
+        </g>
+        <path d="M92 44 Q80 14 60 12" stroke="#1f4f4a" stroke-width="5" fill="none" stroke-linecap="round" /><circle cx="58" cy="12" r="6" fill="#1f4f4a" />
+        <path d="M128 44 Q140 14 160 12" stroke="#1f4f4a" stroke-width="5" fill="none" stroke-linecap="round" /><circle cx="162" cy="12" r="6" fill="#1f4f4a" />
+        <circle cx="110" cy="62" r="34" fill="#1f4f4a" />
+        <circle cx="97" cy="58" r="13" fill="#fff" /><circle cx="123" cy="58" r="13" fill="#fff" />
+        <g class="blink"><circle cx="98" cy="60" r="6.5" fill="#1a1010" /><circle cx="124" cy="60" r="6.5" fill="#1a1010" /><circle cx="100" cy="57" r="2.4" fill="#fff" /><circle cx="126" cy="57" r="2.4" fill="#fff" /></g>
+        <circle cx="86" cy="76" r="6" fill="#ff8fa3" opacity="0.8" /><circle cx="134" cy="76" r="6" fill="#ff8fa3" opacity="0.8" />
+        <path d="M98 78 Q110 90 122 78" stroke="#fff" stroke-width="4" fill="none" stroke-linecap="round" />
+      </g>
+    </svg>
+  </div>
 
   <script type="module">
     import * as THREE from 'three';
-    import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+    import { SparkRenderer, SplatMesh } from '@sparkjsdev/spark';
 
     // ---------- Renderer / camera ----------
     const canvas = document.getElementById('scene');
     const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.outputColorSpace = THREE.SRGBColorSpace;
-    renderer.shadowMap.enabled = true;
-    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(0x07040a);
+    scene.add(new SparkRenderer({ renderer }));
     const camera = new THREE.PerspectiveCamera(40, 1, 0.01, 100);
     camera.position.set(0, 0, 3.2);
 
-    // ---------- Backdrop that catches the coloured shadows ----------
+    // ---------- Backdrop lit by the colour-changing spotlight ----------
     const wall = new THREE.Mesh(
       new THREE.PlaneGeometry(30, 30),
-      new THREE.MeshStandardMaterial({ color: 0x9a9a9a, roughness: 0.95 })
+      new THREE.MeshStandardMaterial({ color: 0xb8b8b8, roughness: 0.95 })
     );
-    wall.position.z = -1.4;
-    wall.receiveShadow = true;
+    wall.position.z = -3;
+    wall.renderOrder = -1; // draw first so it never covers the splats
     scene.add(wall);
 
     scene.add(new THREE.AmbientLight(0xffffff, 0.04));
 
-    // A single fixed spotlight, off to one side so its shadow lands beside the shape.
-    // Its colour cycles through the rainbow while the music plays.
-    const spot = new THREE.SpotLight(0xff2d95, 14, 20, Math.PI / 5, 0.8, 1.5);
+    // A single fixed spotlight washing the wall. Its colour jumps through a set of
+    // bold colours while the music plays. (Splats aren't lit by it and cast no shadow.)
+    const spot = new THREE.SpotLight(0xff2d95, 26, 20, Math.PI / 5, 0.8, 1.5);
     spot.position.set(-1.8, 1.2, 3);
-    spot.target.position.set(0, 0, -1.4);
-    spot.castShadow = true;
-    spot.shadow.mapSize.set(2048, 2048);
-    spot.shadow.bias = -0.0005;
-    spot.shadow.radius = 3;
+    spot.target.position.set(0, 0, -3);
     scene.add(spot, spot.target);
+
+    // Matched to the fridge-magnet letters in the scan: red, blue, green, yellow, magenta, orange, purple
+    const LIGHT_COLOURS = [0xff2020, 0x2a7dff, 0x33ff33, 0xffee00, 0xff1fc8, 0xff8000, 0xb040ff];
+    const COLOUR_STEP = 1; // seconds per colour
+
+    const music = document.getElementById('music');
+    const playBtn = document.getElementById('play');
 
     // ---------- Model ----------
     const spinner = new THREE.Group();
     scene.add(spinner);
 
-    new GLTFLoader().load('/ghost.glb', (gltf) => {
-      const model = gltf.scene;
-      model.traverse((o) => { if (o.isMesh) o.castShadow = true; });
+    // Gaussian splat scan. Its lighting is baked in from the capture.
+    const cube = new SplatMesh({ url: '/cube.compressed.ply' });
+    const white = new THREE.Color(0xffffff);
+    cube.initialized.then(() => {
       // Centre the scan and scale it to roughly 1.4 units across
-      const box = new THREE.Box3().setFromObject(model);
+      const box = cube.getBoundingBox(true);
       const size = box.getSize(new THREE.Vector3());
-      model.position.sub(box.getCenter(new THREE.Vector3()));
+      cube.position.sub(box.getCenter(new THREE.Vector3()));
       spinner.scale.setScalar(1.4 / Math.max(size.x, size.y, size.z));
-      spinner.add(model);
-    }, undefined, (err) => console.error(err));
+      // Splat files come in upside down, so flip it the right way up
+      const upright = new THREE.Group();
+      upright.rotation.x = Math.PI;
+      upright.add(cube);
+      spinner.add(upright);
+      playBtn.disabled = false;
+      playBtn.classList.remove('loading');
+    }).catch((err) => console.error(err));
 
     function resize() {
       const w = window.innerWidth, h = window.innerHeight;
@@ -162,67 +440,42 @@
       spinner.rotation.y = t * 0.8;
       spinner.rotation.x = Math.sin(t * 0.5) * 0.15;
       spinner.position.y = Math.sin(t * 1.2) * 0.05;
-      // Hue starts on pink and takes ~8s to go all the way round
-      spot.color.setHSL((0.92 + t / 8) % 1, 1, 0.55);
+      // Snap to the next colour every second (no fading between them)
+      spot.color.set(LIGHT_COLOURS[Math.floor(t / COLOUR_STEP) % LIGHT_COLOURS.length]);
+      // Tint the scan a little toward the light colour so it feels part of the show
+      cube.recolor.copy(white).lerp(spot.color, playing ? 0.35 : 0);
       renderer.render(scene, camera);
     });
 
+    // ---------- Bug messengers ----------
+    // Each bug's entrance, bubble and exit are CSS animations; JS just cues them in order.
+    const bugs = [...document.querySelectorAll('.bug')];
+    const FIRST_DELAY = 6000, EACH = 5000, REST = 10000;
+
+    for (const bug of bugs) bug.addEventListener('animationend', (e) => {
+      if (e.target === bug) bug.classList.remove('go');
+    });
+
+    function cue(bug) {
+      bug.classList.remove('go');
+      void bug.offsetWidth; // restart the animation if it's mid-run
+      bug.classList.add('go');
+    }
+
+    function runBugs() {
+      bugs.forEach((bug, i) => setTimeout(() => cue(bug), i * EACH));
+      setTimeout(runBugs, bugs.length * EACH + REST);
+    }
+
     // ---------- Play ----------
-    const music = document.getElementById('music');
-    const playBtn = document.getElementById('play');
-
-    // ---------- Captions ----------
-    const CAPTIONS = [
-      { text: 'You are invited to a Bugsween!', bg: '#ffe500', fg: '#e4202e' },
-      { text: '28th of November', bg: '#e4202e', fg: '#ffe500' },
-      { text: '19 Roden Street', bg: '#1c75bc', fg: '#fff' },
-      { text: 'The theme is bugs!', bg: '#ffe500', fg: '#1c75bc' },
-    ];
-    const FIRST_DELAY = 5000, EACH = 5000, REST = 10000;
-    const caption = document.getElementById('caption');
-    const captionText = caption.querySelector('span');
-    const flash = document.getElementById('flash');
-
-    // Jagged comic starburst, slightly different every time
-    function burst() {
-      const n = 22, pts = [];
-      for (let i = 0; i < n * 2; i++) {
-        const a = (i / (n * 2)) * Math.PI * 2;
-        const r = i % 2 ? 36 + Math.random() * 6 : 48 + Math.random() * 4;
-        pts.push(`${50 + Math.cos(a) * r}% ${50 + Math.sin(a) * r}%`);
-      }
-      return `polygon(${pts.join(',')})`;
-    }
-
-    function show({ text, bg, fg }) {
-      captionText.textContent = text;
-      caption.style.setProperty('--burst', burst());
-      caption.style.setProperty('--bg', bg);
-      caption.style.setProperty('--fg', fg);
-      // Restart the CSS animations
-      for (const el of [caption, flash, document.body]) {
-        el.classList.remove('on', 'shake');
-        void el.offsetWidth;
-      }
-      caption.classList.add('on');
-      flash.classList.add('on');
-      document.body.classList.add('shake');
-    }
-
-    function runCaptions() {
-      CAPTIONS.forEach((c, i) => setTimeout(() => show(c), i * EACH));
-      setTimeout(runCaptions, CAPTIONS.length * EACH + REST);
-    }
-
     playBtn.addEventListener('click', () => {
-      // Start the song 1 minute in (the #t=60 on the src covers browsers that ignore this)
-      if (music.currentTime < 60) music.currentTime = 60;
+      // Start the song 86s in (the #t=86 on the src covers browsers that ignore this)
+      if (music.currentTime < 86) music.currentTime = 86;
       music.play();
-      setTimeout(runCaptions, FIRST_DELAY);
+      setTimeout(runBugs, FIRST_DELAY);
       playing = true;
       playBtn.classList.add('hidden');
     });
-
   </script>
 </body>
 </html>
