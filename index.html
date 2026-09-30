@@ -440,8 +440,8 @@
       const w = window.innerWidth, h = window.innerHeight;
       renderer.setSize(w, h, false);
       camera.aspect = w / h;
-      // Pull the camera back on narrow screens so the cube fits
-      camera.position.z = w < h ? 2.7 : 1.8;
+      // Close in so the letters and bugs fill the view; pull back a little on narrow screens
+      camera.position.z = w < h ? 1.6 : 1.0;
       camera.updateProjectionMatrix();
     }
     window.addEventListener('resize', resize);
