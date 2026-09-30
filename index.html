@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Bugs Ween</title>
-  <meta name="description" content="Bugs Ween. The ugliest bug ball of the year." />
+  <meta name="description" content="Bugs Ween" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@600;700&display=swap" rel="stylesheet" />
@@ -376,13 +376,13 @@
     // ---------- Backdrop lit by the colour-changing spotlight ----------
     const wall = new THREE.Mesh(
       new THREE.PlaneGeometry(30, 30),
-      new THREE.MeshStandardMaterial({ color: 0xb8b8b8, roughness: 0.95 })
+      new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.95 })
     );
     wall.position.z = -3;
     wall.renderOrder = -1; // draw first so it never covers the splats
     scene.add(wall);
 
-    scene.add(new THREE.AmbientLight(0xffffff, 0.04));
+    scene.add(new THREE.AmbientLight(0xffffff, 0.12));
 
     // A single fixed spotlight washing the wall. Its colour jumps through a set of
     // bold colours while the music plays. (Splats aren't lit by it and cast no shadow.)
@@ -391,9 +391,28 @@
     spot.target.position.set(0, 0, -3);
     scene.add(spot, spot.target);
 
-    // Matched to the fridge-magnet letters in the scan: red, blue, green, yellow, magenta, orange, purple
-    const LIGHT_COLOURS = [0xff2020, 0x2a7dff, 0x33ff33, 0xffee00, 0xff1fc8, 0xff8000, 0xb040ff];
-    const COLOUR_STEP = 1; // seconds per colour
+    // The light show. Colours match the fridge-magnet letters in the scan; the soft
+    // white spells let you see the cube as normal. Each entry is [colour, strength, seconds].
+    const WHITE = [0xffffff, 30, 1];
+    const LIGHT_SHOW = [
+      [0xff2020, 34, 0.5], [0x2a7dff, 34, 0.5], [0x33ff33, 34, 0.5], [0xffee00, 34, 0.5],
+      [0xff1fc8, 34, 0.5], [0xff8000, 34, 0.5], [0xb040ff, 34, 0.5], [0x00f0ff, 34, 0.5],
+      [0xff2020, 34, 1], [0xffee00, 34, 1], [0x2a7dff, 34, 1], [0xff1fc8, 34, 1],
+      [0xffffff, 30, 1.5],                                                        // breather
+      [0x33ff33, 34, 0.5], [0xb040ff, 34, 0.5], [0xff8000, 34, 0.5], [0x00f0ff, 34, 0.5],
+      [0xff2020, 34, 0.25], [0x2a7dff, 34, 0.25], [0xffee00, 34, 0.25], [0xff1fc8, 34, 0.25],  // fast strobe
+      [0x33ff33, 34, 0.25], [0xff8000, 34, 0.25], [0xb040ff, 34, 0.25], [0x00f0ff, 34, 0.25],
+      [0xff1fc8, 34, 1], [0x33ff33, 34, 1], [0xff8000, 34, 1], [0x2a7dff, 34, 1],
+      [0xffffff, 30, 1.5],                                                        // breather
+      [0xb040ff, 34, 0.5], [0xffee00, 34, 0.5], [0xff2020, 34, 0.5], [0x00f0ff, 34, 0.5],
+      [0xff1fc8, 34, 0.5], [0x33ff33, 34, 0.5], [0x2a7dff, 34, 0.5], [0xff8000, 34, 0.5],
+    ];
+    const SHOW_LENGTH = LIGHT_SHOW.reduce((sum, [, , secs]) => sum + secs, 0);
+    function lightAt(time) {
+      let cursor = time % SHOW_LENGTH;
+      for (const step of LIGHT_SHOW) { if (cursor < step[2]) return step; cursor -= step[2]; }
+      return WHITE;
+    }
 
     const music = document.getElementById('music');
     const playBtn = document.getElementById('play');
@@ -440,10 +459,13 @@
       spinner.rotation.y = t * 0.8;
       spinner.rotation.x = Math.sin(t * 0.5) * 0.15;
       spinner.position.y = Math.sin(t * 1.2) * 0.05;
-      // Snap to the next colour every second (no fading between them)
-      spot.color.set(LIGHT_COLOURS[Math.floor(t / COLOUR_STEP) % LIGHT_COLOURS.length]);
+      // Snap to the current step of the light show (no fading between colours)
+      const [colour, strength] = lightAt(t);
+      const isWhite = colour === WHITE[0];
+      spot.color.set(colour);
+      spot.intensity = strength;
       // Tint the scan a little toward the light colour so it feels part of the show
-      cube.recolor.copy(white).lerp(spot.color, playing ? 0.35 : 0);
+      cube.recolor.copy(white).lerp(spot.color, playing && !isWhite ? 0.35 : 0);
       renderer.render(scene, camera);
     });
 
