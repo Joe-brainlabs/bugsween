@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="122 12 98 98">
+  <!-- The ladybird's face, lifted from the first bug messenger -->
+  <path d="M150 55 Q170 20 190 22" stroke="#2b1d1a" stroke-width="5" fill="none" stroke-linecap="round" /><circle cx="191" cy="21" r="6" fill="#2b1d1a" />
+  <path d="M165 60 Q195 40 208 50" stroke="#2b1d1a" stroke-width="5" fill="none" stroke-linecap="round" /><circle cx="209" cy="50" r="6" fill="#2b1d1a" />
+  <ellipse cx="100" cy="95" rx="78" ry="58" fill="#e53935" />
+  <circle cx="130" cy="72" r="9" fill="#2b1d1a" /><circle cx="135" cy="118" r="11" fill="#2b1d1a" />
+  <circle cx="168" cy="82" r="34" fill="#3a2826" />
+  <circle cx="158" cy="76" r="13" fill="#fff" /><circle cx="184" cy="80" r="13" fill="#fff" />
+  <circle cx="161" cy="77" r="6.5" fill="#1a1010" /><circle cx="187" cy="81" r="6.5" fill="#1a1010" />
+  <circle cx="163" cy="74" r="2.4" fill="#fff" /><circle cx="189" cy="78" r="2.4" fill="#fff" />
+  <circle cx="150" cy="96" r="6" fill="#ff8fa3" opacity="0.8" /><circle cx="194" cy="100" r="6" fill="#ff8fa3" opacity="0.8" />
+  <path d="M160 100 Q172 112 184 100" stroke="#fff" stroke-width="4" fill="none" stroke-linecap="round" />
+</svg>
