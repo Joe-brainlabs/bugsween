@@ -453,7 +453,7 @@
     renderer.setAnimationLoop(() => {
       const dt = clock.getDelta();
       if (playing) t += dt;
-      spinner.rotation.y = t * 0.8;
+      spinner.rotation.y = -t * 0.8;
       spinner.rotation.x = Math.sin(t * 0.5) * 0.15;
       spinner.position.y = Math.sin(t * 1.2) * 0.05;
       // Snap to the current step of the light show (no fading between colours)
