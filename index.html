@@ -334,7 +334,7 @@
 
   <!-- Firefly with a glowing heart on its chest -->
   <div class="bug" id="firefly">
-    <div class="bubble">Love you all, excited to see you in the hive!</div>
+    <div class="bubble">Excited to see you all in the hive!</div>
     <svg viewBox="0 0 220 230">
       <defs><radialGradient id="heartGlow"><stop offset="0" stop-color="#fff3a0" stop-opacity="0.95" /><stop offset="0.5" stop-color="#ff6fb0" stop-opacity="0.5" /><stop offset="1" stop-color="#ff6fb0" stop-opacity="0" /></radialGradient></defs>
       <g class="glow"><circle cx="110" cy="122" r="46" fill="url(#heartGlow)" /></g>
@@ -391,27 +391,24 @@
     spot.target.position.set(0, 0, -3);
     scene.add(spot, spot.target);
 
-    // The light show. Colours match the fridge-magnet letters in the scan; the soft
-    // white spells let you see the cube as normal. Each entry is [colour, strength, seconds].
-    const WHITE = [0xffffff, 30, 1];
+    // The light show. Colours match the fridge-magnet letters in the scan (plus cyan).
+    // Each entry is [colour, strength, seconds].
+    const FALLBACK = [0xff2020, 34, 1];
     const LIGHT_SHOW = [
-      [0xff2020, 34, 0.5], [0x2a7dff, 34, 0.5], [0x33ff33, 34, 0.5], [0xffee00, 34, 0.5],
-      [0xff1fc8, 34, 0.5], [0xff8000, 34, 0.5], [0xb040ff, 34, 0.5], [0x00f0ff, 34, 0.5],
-      [0xff2020, 34, 1], [0xffee00, 34, 1], [0x2a7dff, 34, 1], [0xff1fc8, 34, 1],
-      [0xffffff, 30, 1.5],                                                        // breather
-      [0x33ff33, 34, 0.5], [0xb040ff, 34, 0.5], [0xff8000, 34, 0.5], [0x00f0ff, 34, 0.5],
-      [0xff2020, 34, 0.25], [0x2a7dff, 34, 0.25], [0xffee00, 34, 0.25], [0xff1fc8, 34, 0.25],  // fast strobe
-      [0x33ff33, 34, 0.25], [0xff8000, 34, 0.25], [0xb040ff, 34, 0.25], [0x00f0ff, 34, 0.25],
-      [0xff1fc8, 34, 1], [0x33ff33, 34, 1], [0xff8000, 34, 1], [0x2a7dff, 34, 1],
-      [0xffffff, 30, 1.5],                                                        // breather
-      [0xb040ff, 34, 0.5], [0xffee00, 34, 0.5], [0xff2020, 34, 0.5], [0x00f0ff, 34, 0.5],
-      [0xff1fc8, 34, 0.5], [0x33ff33, 34, 0.5], [0x2a7dff, 34, 0.5], [0xff8000, 34, 0.5],
+      [0xff2020, 34, 1], [0x2a7dff, 34, 1], [0x33ff33, 34, 1], [0xffee00, 34, 1],
+      [0xff1fc8, 34, 1], [0xff8000, 34, 1], [0xb040ff, 34, 1], [0x00f0ff, 34, 1],
+      [0xff2020, 34, 1.5], [0xffee00, 34, 1.5], [0x2a7dff, 34, 1.5], [0xff1fc8, 34, 1.5],
+      [0x33ff33, 34, 1], [0xb040ff, 34, 1], [0xff8000, 34, 1], [0x00f0ff, 34, 1],
+      [0xff2020, 34, 0.5], [0x2a7dff, 34, 0.5], [0xffee00, 34, 0.5], [0xff1fc8, 34, 0.5],  // quick burst
+      [0x33ff33, 34, 0.5], [0xff8000, 34, 0.5], [0xb040ff, 34, 0.5], [0x00f0ff, 34, 0.5],
+      [0xff1fc8, 34, 1.5], [0x33ff33, 34, 1.5], [0xff8000, 34, 1.5], [0x2a7dff, 34, 1.5],
+      [0xb040ff, 34, 1], [0xffee00, 34, 1], [0xff2020, 34, 1], [0x00f0ff, 34, 1],
     ];
     const SHOW_LENGTH = LIGHT_SHOW.reduce((sum, [, , secs]) => sum + secs, 0);
     function lightAt(time) {
       let cursor = time % SHOW_LENGTH;
       for (const step of LIGHT_SHOW) { if (cursor < step[2]) return step; cursor -= step[2]; }
-      return WHITE;
+      return FALLBACK;
     }
 
     const music = document.getElementById('music');
@@ -461,11 +458,10 @@
       spinner.position.y = Math.sin(t * 1.2) * 0.05;
       // Snap to the current step of the light show (no fading between colours)
       const [colour, strength] = lightAt(t);
-      const isWhite = colour === WHITE[0];
       spot.color.set(colour);
       spot.intensity = strength;
       // Tint the scan a little toward the light colour so it feels part of the show
-      cube.recolor.copy(white).lerp(spot.color, playing && !isWhite ? 0.35 : 0);
+      cube.recolor.copy(white).lerp(spot.color, playing ? 0.35 : 0);
       renderer.render(scene, camera);
     });
 
